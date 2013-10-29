@@ -3,6 +3,9 @@
 # Notifies you when updates are available for Homebrew packages
 # Uses terminal-notifier in OS X Mountain Lion and above. To install it use command:
 # sudo gem install terminal-notifier
+#
+# Copy file into $HOME/bin and add to crontab:
+# 0 7,15 * * * $HOME/bin/homebrew_update.sh
 
 BREW_EXEC='/usr/local/bin/brew'
 
