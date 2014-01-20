@@ -9,13 +9,9 @@
 
 BREW_EXEC='/usr/local/bin/brew'
 
-if [ -z "$1" ]; then
-    $BREW_EXEC update 2>&1 > /dev/null
-    outdated=`$BREW_EXEC outdated`
+$BREW_EXEC update 2>&1 > /dev/null
+outdated=`$BREW_EXEC outdated`
 
-    if [ ! -z "$outdated" ]; then
-	/usr/bin/terminal-notifier -message "$outdated" -title "Homebrew Updates" -execute $0' upgrade'
-    fi
-else
-    $BREW_EXEC upgrade 2>&1 > /dev/null
+if [ ! -z "$outdated" ]; then
+    /usr/bin/terminal-notifier -message "$outdated" -title "Homebrew Updates"
 fi
