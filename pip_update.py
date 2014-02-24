@@ -9,6 +9,7 @@
 import xmlrpclib
 import pip
 from subprocess import call
+import argparse
 
 
 def notification(title='', subtitle='', message=''):
@@ -20,6 +21,10 @@ def notification(title='', subtitle='', message=''):
 
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--stdout', action='store_true', help="Don't use notification, output to stdout")
+    args = parser.parse_args()
+
     new = []
     pypi = xmlrpclib.ServerProxy('http://pypi.python.org/pypi')
     for dist in pip.get_installed_distributions():
@@ -31,4 +36,7 @@ if __name__ == '__main__':
 	    new.append('{dist.project_name} {dist.version} -> {available}'.format(dist=dist, available=available[0]))
 
     if new:
-	notification(title='pip updates', message='\n'.join(new))
+	if args.stdout:
+	    print '\n'.join(new)
+	else:
+	    notification(title='pip updates', message='\n'.join(new))
