@@ -27,7 +27,7 @@ if __name__ == '__main__':
 	if not available:  # Try to capitalize pkg name
 	    available = pypi.package_releases(dist.project_name.capitalize())
 
-	if available[0] != dist.version:
+	if available and available[0] != dist.version:
 	    new.append('{dist.project_name} {dist.version} -> {available}'.format(dist=dist, available=available[0]))
 
     if new:
