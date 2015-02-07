@@ -4,6 +4,8 @@
 # 5 7,15,21 * * * $HOME/.virtualenvs/<your venv>/bin/python $HOME/bin/pip_update.py
 # Uses terminal-notifier in OS X Mountain Lion and above. To install it use command:
 # sudo gem install terminal-notifier
+# or
+# brew install terminal-notifier
 
 
 import xmlrpclib
