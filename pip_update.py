@@ -14,15 +14,16 @@ import argparse
 
 def notification(title='', subtitle='', message=''):
     """ Uses terminal-notifier for showing notifications.
-
     """
     with open('/dev/null') as null:
-	call(['terminal-notifier', '-title', title, '-subtitle', subtitle,'-message', message], stdin=null)
+	call(['/usr/local/bin/terminal-notifier', '-title', title,
+	      '-subtitle', subtitle, '-message', message], stdin=null)
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--stdout', action='store_true', help="Don't use notification, output to stdout")
+    parser.add_argument('--stdout', action='store_true',
+			help="Don't use notification, output to stdout")
     args = parser.parse_args()
 
     new = []
