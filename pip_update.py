@@ -23,7 +23,7 @@ PYPI_URL = 'http://pypi.python.org/pypi'
 def notification(title='', subtitle='', message=''):
     """ Uses terminal-notifier for showing notifications."""
     with open('/dev/null') as null:
-	call(['terminal-notifier', '-title', title, '-subtitle', subtitle, '-message', message], stdin=null)
+        call(['terminal-notifier', '-title', title, '-subtitle', subtitle, '-message', message], stdin=null)
 
 
 def main():
@@ -36,25 +36,25 @@ def main():
     new = []
     pypi = xmlrpclib.ServerProxy(PYPI_URL)
     for dist in pip.get_installed_distributions():
-	available = pypi.package_releases(dist.project_name)
-	if not available:  # Try to capitalize pkg name
-	    available = pypi.package_releases(dist.project_name.capitalize())
+        available = pypi.package_releases(dist.project_name)
+        if not available:  # Try to capitalize pkg name
+            available = pypi.package_releases(dist.project_name.capitalize())
 
-	if available:
-	    version = parse(available[0])
-	    if not version.is_prerelease and version != parse(dist.version):
-		if args.markdown:
-		    url = '{pypi}/{dist.project_name}/{ver}'.format(pypi=PYPI_URL, dist=dist, ver=available[0])
-		    new.append('{dist.project_name} {dist.version} -> [{available}]({url})'.format(dist=dist,
-												   available=version,
-												   url=url))
-		else:
-		    new.append('{dist.project_name} {dist.version} -> {available}'.format(dist=dist, available=version))
-    if new:
-	if args.stdout:
-	    print('\n'.join(new))
-	else:
-	    notification(title='pip updates', message='\n'.join(new))
+        if available:
+            version = parse(available[0])
+            dist_version = parse(dist.version)
+            if not version.is_prerelease and version > dist_version:
+                if args.markdown:
+                    url = '{pypi}/{dist.project_name}/{ver}'.format(pypi=PYPI_URL, dist=dist, ver=available[0])
+                    new.append('{dist.project_name} {dist.version} -> [{available}]({url})'.format(dist=dist,
+                                                           available=version,
+                                                           url=url))
+                else:
+                    new.append('{dist.project_name} {dist.version} -> {available}'.format(dist=dist, available=version))
+    if new and args.stdout:
+        print('\n'.join(new))
+    elif new:
+        notification(title='pip updates', message='\n'.join(new))
 
 
 if __name__ == '__main__':
