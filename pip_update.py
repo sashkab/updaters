@@ -11,6 +11,7 @@ import requests
 import json
 from subprocess import call
 import argparse
+from time import sleep
 
 from pip._vendor.packaging.version import parse
 
@@ -55,6 +56,7 @@ def main():
                 updates.append('{dist.project_name} {dist.version} -> [{n}]({u})'.format(dist=dist, n=new_version, u=url))
             else:
                 updates.append('{dist.project_name} {dist.version} -> {n}'.format(dist=dist, n=new_version))
+        sleep(1)
 
     if updates:
         if args.markdown or args.stdout:
