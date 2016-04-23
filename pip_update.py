@@ -6,6 +6,7 @@
 # Uses terminal-notifier in OS X Mountain Lion and above. To install it use command:
 # sudo gem install terminal-notifier
 
+from __future__ import print_function
 import pip
 import requests
 import json
@@ -67,3 +68,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+
