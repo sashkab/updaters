@@ -6,6 +6,9 @@
 
 BREW_EXEC='/usr/local/bin/brew'
 
+# https://github.com/Homebrew/brew/blob/master/share/doc/homebrew/Analytics.md
+export HOMEBREW_NO_ANALYTICS=1
+
 if [ -z "$1" ]; then
     $BREW_EXEC update > /dev/null 2>&1
     outdated=$($BREW_EXEC outdated)
