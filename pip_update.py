@@ -17,7 +17,7 @@ from time import sleep
 from pip._vendor.packaging.version import parse
 
 PYPI_URL = 'https://pypi.python.org/pypi'
-VERSION = '2.1'
+VERSION = '2.2'
 
 def notification(title='', subtitle='', message=''):
     """ Uses terminal-notifier for showing notifications."""
@@ -34,7 +34,7 @@ def get_version(package, url_pattern=PYPI_URL + '/{package}/json'):
     req = requests.get(url_pattern.format(package=package))
     v = parse('0')
     if req.status_code == requests.codes.ok:
-        j = json.loads(req.text.encode(req.encoding))
+        j = json.loads(req.text.encode(req.encoding).decode('utf8'))
         if 'releases' in j:
             releases = j['releases']
             for release in releases:
@@ -46,7 +46,8 @@ def get_version(package, url_pattern=PYPI_URL + '/{package}/json'):
 
 def main():
     """Main function"""
-    parser = argparse.ArgumentParser(version=VERSION)
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--version', action='version', version='%(prog)s ' + VERSION)
     parser.add_argument('-S', '--stdout', action='store_true', help="Don't use notification, output to stdout")
     parser.add_argument('-M', '--markdown', action='store_true', help="Enable markdown output")
     args = parser.parse_args()
