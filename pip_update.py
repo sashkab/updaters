@@ -17,7 +17,7 @@ from time import sleep
 from pip._vendor.packaging.version import parse
 
 PYPI_URL = 'https://pypi.python.org/pypi'
-VERSION = '2.2'
+VERSION = '2.2.1'
 
 def notification(title='', subtitle='', message=''):
     """ Uses terminal-notifier for showing notifications."""
@@ -57,12 +57,12 @@ def main():
         pypi_version = get_version(dist.project_name)
         if not pypi_version.is_prerelease and pypi_version > dist.parsed_version:
             new_version = str(pypi_version)
-            url = '{pypi}/{dist.project_name}/{ver}'.format(pypi=PYPI_URL, dist=dist, ver=new_version)
             if args.markdown:
+                url = '{pypi}/{dist.project_name}/{ver}'.format(pypi=PYPI_URL, dist=dist, ver=new_version)
                 updates[dist.project_name]  = '{dist.project_name} {dist.version} -> [{n}]({u})'.format(dist=dist, n=new_version, u=url)
             else:
                 updates[dist.project_name] = '{dist.project_name} {dist.version} -> {n}'.format(dist=dist, n=new_version)
-        sleep(1)
+        # sleep(1)
 
     if updates:
         if args.markdown or args.stdout:
