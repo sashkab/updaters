@@ -17,7 +17,12 @@ from time import sleep
 from pip._vendor.packaging.version import parse
 
 PYPI_URL = 'https://pypi.python.org/pypi'
-VERSION = '2.2.1'
+VERSION = '2.2.12'
+
+
+def decode(x):¬
+    return x if str is bytes else x.decode()
+
 
 def notification(title='', subtitle='', message=''):
     """ Uses terminal-notifier for showing notifications."""
@@ -26,7 +31,7 @@ def notification(title='', subtitle='', message=''):
                           '-subtitle', subtitle, '-message', message,
                           '-dropdownLabel', 'Close', '-actions', 'Close,Install Updates',
                         ], stdin=null)
-        return r.strip()
+        return decode(r).strip()
 
 
 def get_version(package, url_pattern=PYPI_URL + '/{package}/json'):
@@ -69,10 +74,9 @@ def main():
             print('\n'.join(updates.values()))
         else:
             action = notification(title='pip updates', message='\n'.join(updates.values()))
-            if action.startswith("Install Updates"):
+            if action.startswith('Install Updates'):
                 check_output(['pip', 'install', '-U'] + updates.keys())
 
 
 if __name__ == '__main__':
     main()
-
