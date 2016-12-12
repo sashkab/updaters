@@ -17,10 +17,10 @@ from time import sleep
 from pip._vendor.packaging.version import parse
 
 PYPI_URL = 'https://pypi.python.org/pypi'
-VERSION = '2.2.12'
+VERSION = '2.2.13'
 
 
-def decode(x):¬
+def decode(x):
     return x if str is bytes else x.decode()
 
 
@@ -75,7 +75,7 @@ def main():
         else:
             action = notification(title='pip updates', message='\n'.join(updates.values()))
             if action.startswith('Install Updates'):
-                check_output(['pip', 'install', '-U'] + updates.keys())
+                check_output(['pip', 'install', '-U'] + list(updates.keys()))
 
 
 if __name__ == '__main__':
