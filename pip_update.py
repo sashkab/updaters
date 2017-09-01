@@ -18,7 +18,7 @@ import os
 from pip._vendor.packaging.version import parse
 
 PYPI_URL = 'https://pypi.python.org/pypi'
-VERSION = '2.2.14'
+VERSION = '2.2.15'
 
 
 def decode(x):
@@ -35,7 +35,6 @@ def notification(title='', subtitle='', message='', enable_actions=True):
         cmd.extend(['-actions', 'Update',])
 
     with open('/dev/null') as null:
-        print(' '.join(cmd))
         res = check_output(cmd, stdin=null)
         return decode(res).strip()
 
@@ -88,9 +87,7 @@ def main():
             else:
                 if js['activationType'] == 'actionClicked' and js['activationValue'] == 'Update':
                     cmd = ['pip', 'install', '-U'] + list(updates.keys())
-                    print(' '.join(cmd))
                     out = check_output(cmd)
-                    print(decode(out).strip())
 
 
 if __name__ == '__main__':
