@@ -13,25 +13,31 @@ import json
 from subprocess import check_output
 import argparse
 from time import sleep
+import os
 
 from pip._vendor.packaging.version import parse
 
 PYPI_URL = 'https://pypi.python.org/pypi'
-VERSION = '2.2.13'
+VERSION = '2.2.14'
 
 
 def decode(x):
     return x if str is bytes else x.decode()
 
 
-def notification(title='', subtitle='', message=''):
+def notification(title='', subtitle='', message='', enable_actions=True):
     """ Uses terminal-notifier for showing notifications."""
+    cmd = ['terminal-notifier', '-title', title, 
+            '-subtitle', subtitle, '-message', message,
+            '-group', 'com.github.sashkab.pipupdate',
+            '-json', ]
+    if enable_actions:
+        cmd.extend(['-actions', 'Update',])
+
     with open('/dev/null') as null:
-        r = check_output(['terminal-notifier', '-title', title, 
-                          '-subtitle', subtitle, '-message', message,
-                          '-dropdownLabel', 'Close', '-actions', 'Close,Install Updates',
-                        ], stdin=null)
-        return decode(r).strip()
+        print(' '.join(cmd))
+        res = check_output(cmd, stdin=null)
+        return decode(res).strip()
 
 
 def get_version(package, url_pattern=PYPI_URL + '/{package}/json'):
@@ -73,9 +79,18 @@ def main():
         if args.markdown or args.stdout:
             print('\n'.join(updates.values()))
         else:
-            action = notification(title='pip updates', message='\n'.join(updates.values()))
-            if action.startswith('Install Updates'):
-                check_output(['pip', 'install', '-U'] + list(updates.keys()))
+            action = notification(title='pip updates', message=' '.join(updates.values()),
+                                  enable_actions='PIP_NO_INDEX' not in os.environ)
+            try:
+                js = json.loads(action)
+            except json.decoder.JSONDecodeError:
+                pass
+            else:
+                if js['activationType'] == 'actionClicked' and js['activationValue'] == 'Update':
+                    cmd = ['pip', 'install', '-U'] + list(updates.keys())
+                    print(' '.join(cmd))
+                    out = check_output(cmd)
+                    print(decode(out).strip())
 
 
 if __name__ == '__main__':
