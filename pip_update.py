@@ -10,7 +10,7 @@ from __future__ import print_function
 import pip
 import requests
 import json
-from subprocess import check_output
+from subprocess import check_output, CalledProcessError, STDOUT
 import argparse
 from time import sleep
 import os
@@ -18,8 +18,7 @@ import os
 from pip._vendor.packaging.version import parse
 
 PYPI_URL = 'https://pypi.python.org/pypi'
-VERSION = '2.2.15'
-
+VERSION = '3.0'
 
 def decode(x):
     return x if str is bytes else x.decode()
@@ -27,10 +26,10 @@ def decode(x):
 
 def notification(title='', subtitle='', message='', enable_actions=True):
     """ Uses terminal-notifier for showing notifications."""
-    cmd = ['terminal-notifier', '-title', title, 
-            '-subtitle', subtitle, '-message', message,
-            '-group', 'com.github.sashkab.pipupdate',
-            '-json', ]
+    cmd = ['terminal-notifier', '-title', title,
+           '-subtitle', subtitle, '-message', message,
+           '-group', 'com.github.sashkab.pipupdate',
+           '-json', ]
     if enable_actions:
         cmd.extend(['-actions', 'Update',])
 
@@ -42,7 +41,7 @@ def notification(title='', subtitle='', message='', enable_actions=True):
 def get_version(package, url_pattern=PYPI_URL + '/{package}/json'):
     """Return version of package on pypi.python.org using json."""
     req = requests.get(url_pattern.format(package=package))
-    v = parse('0')
+    version = parse('0')
     if req.status_code == requests.codes.ok:
         j = json.loads(req.text.encode(req.encoding).decode('utf8'))
         if 'releases' in j:
@@ -50,35 +49,39 @@ def get_version(package, url_pattern=PYPI_URL + '/{package}/json'):
             for release in releases:
                 ver = parse(release)
                 if not ver.is_prerelease:
-                    v = max(v, ver)
-    return v
+                    version = max(version, ver)
+    return version
 
 
 def main():
     """Main function"""
     parser = argparse.ArgumentParser()
     parser.add_argument('--version', action='version', version='%(prog)s ' + VERSION)
-    parser.add_argument('-S', '--stdout', action='store_true', help="Don't use notification, output to stdout")
-    parser.add_argument('-M', '--markdown', action='store_true', help="Enable markdown output")
+    parser.add_argument('-S', '--stdout', action='store_true', help="output to stdout")
+    parser.add_argument('-M', '--markdown', action='store_true', help="output markdown to stdout")
     args = parser.parse_args()
 
-    updates = {}
+    if args.markdown:
+        pattern = '{dist.project_name} {dist.version} -> [{new_version}]({pypi}/{dist.project_name}/{new_version})'
+        sep = '\n'
+    elif args.stdout:
+        pattern = "{dist.project_name}=={new_version}"
+        sep = '\n'
+    else:
+        pattern = "{dist.project_name}"
+        sep = ', '
+
+    updates = []
     for dist in pip.get_installed_distributions():
         pypi_version = get_version(dist.project_name)
         if not pypi_version.is_prerelease and pypi_version > dist.parsed_version:
-            new_version = str(pypi_version)
-            if args.markdown:
-                url = '{pypi}/{dist.project_name}/{ver}'.format(pypi=PYPI_URL, dist=dist, ver=new_version)
-                updates[dist.project_name]  = '{dist.project_name} {dist.version} -> [{n}]({u})'.format(dist=dist, n=new_version, u=url)
-            else:
-                updates[dist.project_name] = '{dist.project_name} {dist.version} -> {n}'.format(dist=dist, n=new_version)
-        # sleep(1)
+            updates.append(pattern.format(dist=dist, new_version=str(pypi_version), pypi=PYPI_URL))
 
     if updates:
         if args.markdown or args.stdout:
-            print('\n'.join(updates.values()))
+            print(sep.join(updates))
         else:
-            action = notification(title='pip updates', message=' '.join(updates.values()),
+            action = notification(title="pip: %d updates" % len(updates), message=sep.join(updates),
                                   enable_actions='PIP_NO_INDEX' not in os.environ)
             try:
                 js = json.loads(action)
@@ -86,8 +89,11 @@ def main():
                 pass
             else:
                 if js['activationType'] == 'actionClicked' and js['activationValue'] == 'Update':
-                    cmd = ['pip', 'install', '-U'] + list(updates.keys())
-                    out = check_output(cmd)
+                    cmd = ['pip', 'install', '-U'] + updates
+                    try:
+                        out = check_output(cmd, stderr=STDOUT)
+                    except CalledProcessError as err:
+                        print("{err}\n{err.output}".format(err=err))
 
 
 if __name__ == '__main__':
