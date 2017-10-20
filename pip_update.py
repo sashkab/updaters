@@ -3,25 +3,32 @@
 # To be called from crontab:
 # 5 7,15,21 * * * $HOME/.virtualenvs/<your venv>/bin/python $HOME/bin/pip_update.py
 #
-# Uses terminal-notifier 1.7 or above on macOS Sierra. 
+# Uses terminal-notifier 1.7 or above on macOS Sierra.
 # To install terminal-notifer, use Homebrew: brew install terminal-notifier
 
 from __future__ import print_function
-import pip
-import requests
 import json
 from subprocess import check_output, CalledProcessError, STDOUT
 import argparse
 from time import sleep
 import os
+import sys
 
-from pip._vendor.packaging.version import parse
+try:
+    import pkg_resources
+    from packaging.version import parse
+    import requests
+except ImportError as err:
+    print("Please install %s." % err.name)
+    sys.exit(1)
 
 PYPI_URL = 'https://pypi.python.org/pypi'
-VERSION = '3.0'
+VERSION = '3.1'
 
-def decode(x):
-    return x if str is bytes else x.decode()
+
+def decode(string):
+    """py2/3 compatibility"""
+    return string if str is bytes else string.decode()
 
 
 def notification(title='', subtitle='', message='', enable_actions=True):
@@ -72,9 +79,10 @@ def main():
         sep = ', '
 
     updates = []
-    for dist in pip.get_installed_distributions():
+    for dist in pkg_resources.working_set:
         pypi_version = get_version(dist.project_name)
-        if not pypi_version.is_prerelease and pypi_version > dist.parsed_version:
+        installed_version = parse(dist.parsed_version.base_version)
+        if not pypi_version.is_prerelease and pypi_version > installed_version:
             updates.append(pattern.format(dist=dist, new_version=str(pypi_version), pypi=PYPI_URL))
 
     if updates:
@@ -91,7 +99,7 @@ def main():
                 if js['activationType'] == 'actionClicked' and js['activationValue'] == 'Update':
                     cmd = ['pip', 'install', '-U'] + updates
                     try:
-                        out = check_output(cmd, stderr=STDOUT)
+                        _ = check_output(cmd, stderr=STDOUT)
                     except CalledProcessError as err:
                         print("{err}\n{err.output}".format(err=err))
 
