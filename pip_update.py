@@ -3,14 +3,13 @@
 # To be called from crontab:
 # 5 7,15,21 * * * $HOME/.virtualenvs/<your venv>/bin/python $HOME/bin/pip_update.py
 #
-# Uses terminal-notifier 1.7 or above on macOS Sierra.
+# Uses terminal-notifier 2.0 or above on macOS Sierra.
 # To install terminal-notifer, use Homebrew: brew install terminal-notifier
 
 from __future__ import print_function
 import json
 from subprocess import check_output, CalledProcessError, STDOUT
 import argparse
-from time import sleep
 import os
 import sys
 
@@ -23,7 +22,7 @@ except ImportError as err:
     sys.exit(1)
 
 PYPI_URL = 'https://pypi.python.org/pypi'
-VERSION = '3.1'
+VERSION = '4.0'
 
 
 def decode(string):
@@ -35,8 +34,7 @@ def notification(title='', subtitle='', message='', enable_actions=True):
     """ Uses terminal-notifier for showing notifications."""
     cmd = ['terminal-notifier', '-title', title,
            '-subtitle', subtitle, '-message', message,
-           '-group', 'com.github.sashkab.pipupdate',
-           '-json', ]
+           '-group', 'com.github.sashkab.pipupdate', ]
     if enable_actions:
         cmd.extend(['-actions', 'Update',])
 
@@ -89,19 +87,8 @@ def main():
         if args.markdown or args.stdout:
             print(sep.join(updates))
         else:
-            action = notification(title="pip: %d updates" % len(updates), message=sep.join(updates),
-                                  enable_actions='PIP_NO_INDEX' not in os.environ)
-            try:
-                js = json.loads(action)
-            except json.decoder.JSONDecodeError:
-                pass
-            else:
-                if js['activationType'] == 'actionClicked' and js['activationValue'] == 'Update':
-                    cmd = ['pip', 'install', '-U'] + updates
-                    try:
-                        _ = check_output(cmd, stderr=STDOUT)
-                    except CalledProcessError as err:
-                        print("{err}\n{err.output}".format(err=err))
+            notification(title="pip: %d updates" % len(updates), message=sep.join(updates),
+                         enable_actions='PIP_NO_INDEX' not in os.environ)
 
 
 if __name__ == '__main__':
