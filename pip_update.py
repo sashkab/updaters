@@ -21,8 +21,8 @@ except ImportError as err:
     print("Please install %s." % err.name)
     sys.exit(1)
 
-PYPI_URL = 'https://pypi.python.org/pypi'
-VERSION = '4.0'
+PYPI_URL = 'https://pypi.org/pypi'
+VERSION = '4.0.1'
 
 
 def decode(string):
@@ -45,10 +45,11 @@ def notification(title='', subtitle='', message='', enable_actions=True):
 
 def get_version(package, url_pattern=PYPI_URL + '/{package}/json'):
     """Return version of package on pypi.python.org using json."""
-    req = requests.get(url_pattern.format(package=package))
+    req = requests.get(url_pattern.format(package=package),
+                       headers={'Accept':'application/json'})
     version = parse('0')
     if req.status_code == requests.codes.ok:
-        j = json.loads(req.text.encode(req.encoding).decode('utf8'))
+        j = json.loads(req.text)
         if 'releases' in j:
             releases = j['releases']
             for release in releases:
