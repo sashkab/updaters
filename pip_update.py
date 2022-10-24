@@ -54,7 +54,11 @@ def get_version(package, url_pattern=PYPI_URL + '/{package}/json'):
             releases = j['releases']
             for release in releases:
                 ver = parse(release)
-                if not ver.is_prerelease:
+                yanked = False
+                release_info = j.get('releases', {}).get(release, [])
+                if release_info:
+                    yanked = release_info[0].get('yanked', False)
+                if not ver.is_prerelease and not yanked:
                     version = max(version, ver)
     return version
 
