@@ -4,8 +4,12 @@
 # Uses terminal-notifier in OS X Mountain Lion and above. To install it use command:
 # brew install terminal-notifier
 
-BREW_EXEC="$(brew --prefix)/bin/brew"
-TN="$(brew --prefix terminal-notifier)/bin/terminal-notifier"
+if [ -e "/opt/homebrew/bin/brew" ]; then
+    BREW_EXEC="/opt/homebrew/bin/brew"
+elif [ -e "/usr/local/bin/brew" ]; then
+    BREW_EXEC="/usr/local/bin/brew"
+fi
+TN="$($BREW_EXEC --prefix terminal-notifier)/bin/terminal-notifier"
 
 # https://github.com/Homebrew/brew/blob/master/share/doc/homebrew/Analytics.md
 export HOMEBREW_NO_ANALYTICS=1
