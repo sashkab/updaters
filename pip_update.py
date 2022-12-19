@@ -15,14 +15,14 @@ import sys
 
 try:
     import pkg_resources
-    from packaging.version import parse
+    from packaging.version import parse, InvalidVersion
     import requests
 except ImportError as err:
-    print("Please install %s." % err.name)
+    print(f"Please install {err.name}.")
     sys.exit(1)
 
 PYPI_URL = 'https://pypi.org/pypi'
-VERSION = '4.0.1'
+VERSION = '4.0.2'
 
 
 def decode(string):
@@ -53,7 +53,10 @@ def get_version(package, url_pattern=PYPI_URL + '/{package}/json'):
         if 'releases' in j:
             releases = j['releases']
             for release in releases:
-                ver = parse(release)
+                try:
+                    ver = parse(release)
+                except InvalidVersion:
+                    continue
                 yanked = False
                 release_info = j.get('releases', {}).get(release, [])
                 if release_info:
@@ -66,7 +69,7 @@ def get_version(package, url_pattern=PYPI_URL + '/{package}/json'):
 def main():
     """Main function"""
     parser = argparse.ArgumentParser()
-    parser.add_argument('--version', action='version', version='%(prog)s ' + VERSION)
+    parser.add_argument('--version', action='version', version=f'%(prog)s {VERSION}')
     parser.add_argument('-S', '--stdout', action='store_true', help="output to stdout")
     parser.add_argument('-M', '--markdown', action='store_true', help="output markdown to stdout")
     args = parser.parse_args()
@@ -92,7 +95,7 @@ def main():
         if args.markdown or args.stdout:
             print(sep.join(updates))
         else:
-            notification(title="pip: %d updates" % len(updates), message=sep.join(updates),
+            notification(title=f"pip: {len(updates)} updates", message=sep.join(updates),
                          enable_actions='PIP_NO_INDEX' not in os.environ)
 
 
