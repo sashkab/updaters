@@ -12,9 +12,9 @@ from subprocess import check_output, CalledProcessError, STDOUT
 import argparse
 import os
 import sys
+from importlib.metadata import distributions
 
 try:
-    import pkg_resources
     from packaging.version import parse, InvalidVersion
     import requests
 except ImportError as err:
@@ -75,19 +75,19 @@ def main():
     args = parser.parse_args()
 
     if args.markdown:
-        pattern = '{dist.project_name} {dist.version} -> [{new_version}]({pypi}/{dist.project_name}/{new_version})'
+        pattern = '{dist.name} {dist.version} -> [{new_version}]({pypi}/{dist.name}/{new_version})'
         sep = '\n'
     elif args.stdout:
-        pattern = "{dist.project_name}=={new_version}"
+        pattern = "{dist.name}=={new_version}"
         sep = '\n'
     else:
-        pattern = "{dist.project_name}"
+        pattern = "{dist.name}"
         sep = ', '
 
     updates = []
-    for dist in pkg_resources.working_set:
-        pypi_version = get_version(dist.project_name)
-        installed_version = parse(dist.parsed_version.base_version)
+    for dist in distributions():
+        pypi_version = get_version(dist.name)
+        installed_version = parse(dist.version)
         if not pypi_version.is_prerelease and pypi_version > installed_version:
             updates.append(pattern.format(dist=dist, new_version=str(pypi_version), pypi=PYPI_URL))
 
